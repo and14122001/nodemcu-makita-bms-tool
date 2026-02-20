@@ -1,123 +1,147 @@
-/* data/style.css - ИСПРАВЛЕННАЯ ВЕРСИЯ (СЖАТИЕ V2 + ФИКС 0V ВИЗУАЛИЗАЦИИ) */
+/* =========================================
+   1. 變數與主題設定 (Variables & Theme)
+   ========================================= */
+:root {
+    /* --- 核心顏色 --- */
+    --bg: #f2f2f7;
+    --card: #ffffff;
+    --text-main: #000000;
+    --text-sub: #666666;
+    --border-color: #f0f0f0;
+    --muted: #6b6b6b;
+    
+    /* --- 狀態顏色 --- */
+    --primary: #1976d2;
+    --warn: #d32f2f;
+    --success: #2e7d32;
+    --warning: #ed6c02;
+    --caution: #f1c40f;
+    --crit-low: #ff0000;
 
-:root{
-  --bg: #f4f6f9; --card: #ffffff; --muted: #6b6b6b; --primary: #1976d2;
-  --warn: #d32f2f; --success: #2e7d32; --radius: 12px; --cell-gap: 12px;
-  --ui-font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --crit-low: #ff0000;
-  --gap-v-min: 4px; /* НОВЫЙ минимальный вертикальный отступ */
-}
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0; font-family:var(--ui-font); background:var(--bg); color:#111;
-  -webkit-font-smoothing:antialiased; font-size:16px;
+    /* --- 佈局尺寸 --- */
+    --radius: 12px;
+    --cell-gap: 12px;
+    --gap-v-min: 4px;
+    --ui-font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    /* --- 電池視覺化專用顏色 --- */
+    --bat-border: #333333;
+    --bat-bg: #f0f0f0;
+    --bat-text: #000000;
+    --bat-pos: #ff0000;
+    --bat-neg: #0000ff;
+    --bat-bridge: #9b59b6;
+    --bat-bridge-border: #7d3c98;
 }
 
-/* --- СЖАТЫЙ TOPBAR --- */
-.topbar{
-  display: flex; 
-  flex-wrap: wrap; 
-  justify-content: space-between; 
-  align-items: center;
-  padding: 8px 12px; 
-  background: #fff; 
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
-  gap: 12px; 
+/* --- 深色模式 (Dark Mode) --- */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #000000;
+        --card: #1c1c1e;
+        --text-main: #ffffff;
+        --text-sub: #98989d;
+        --border-color: #38383a;
+        --muted: #8e8e93;
+        --primary: #0a84ff;
+        --warn: #ff453a;
+        --success: #32d74b;
+        --warning: #ff9f0a;
+        --caution: #ffd60a;
+        --crit-low: #ff453a;
+        --bat-border: #8e8e93;
+        --bat-bg: #2c2c2e;
+        --bat-text: #ffffff;
+        --bat-pos: #ff453a;
+        --bat-neg: #0a84ff;
+        --bat-bridge: #bf5af2;
+        --bat-bridge-border: #ac4ec5;
+    }
 }
-.header-left{ 
-    display:flex; 
-    align-items:center; 
-    gap:8px; 
-    flex-grow: 1; 
-}
-.header-right{ 
-    display:flex; 
-    align-items:center; 
-    gap:12px; 
-    flex-shrink: 0; 
-}
-.header-status {
-  width: 100%; 
-  order: 3; 
-  background: #f3f6fa; 
-  border-radius: 8px;
-  padding: 6px 8px; 
-  text-align: center; 
-  font-weight: 600; 
-  font-size: 14px;
-}
-.logo{font-size:24px;} 
-.title-block{display:flex;flex-direction:column;}
-.title{font-weight:600;font-size:16px;} 
-.subtitle{font-size:11px;color:var(--muted)} 
-.lang-block{ display:flex; gap: 2px; background:#f3f6fa; border-radius:8px; padding: 4px; }
-.lang{
-  border-radius:6px; padding:4px 8px; border:none; background:transparent;
-  cursor:pointer; font-size:14px;
-}
-.lang.active{background:var(--primary); color:white; font-weight:600}
 
-.btn-refresh{ display: none !important; }
-
-.container{max-width:980px;margin:12px auto;padding:0 10px}
-.card{
-  background:var(--card); border-radius:var(--radius); padding:12px;
-  margin-bottom:12px; box-shadow:0 2px 8px rgba(30,50,80,0.04);
+/* --- 手動主題切換覆寫 --- */
+body.light-mode {
+    --bg: #f2f2f7; --card: #ffffff; --text-main: #000000; --text-sub: #666666;
+    --border-color: #f0f0f0; --muted: #6b6b6b; --primary: #1976d2; --warn: #d32f2f;
+    --success: #2e7d32; --warning: #ed6c02; --caution: #f1c40f; --crit-low: #ff0000;
+    --bat-border: #333333; --bat-bg: #f0f0f0; --bat-text: #000000;
+    --bat-pos: #ff0000; --bat-neg: #0000ff; --bat-bridge: #9b59b6; --bat-bridge-border: #7d3c98;
 }
-.card.small{padding:8px}
-.card-header{
-  display:flex; justify-content:space-between; align-items:center;
-  margin-bottom:8px; gap:8px;
-}
-.card-header h2, .card-header h3{ margin:0; font-size:18px; font-weight:600; }
 
-/* --- УМЕНЬШЕНИЕ ОТСТУПОВ МЕЖДУ СТРОКАМИ КНОПОК --- */
-.actions-grid {
+body.dark-mode {
+    --bg: #000000; --card: #1c1c1e; --text-main: #ffffff; --text-sub: #98989d;
+    --border-color: #38383a; --muted: #8e8e93; --primary: #0a84ff; --warn: #ff453a;
+    --success: #32d74b; --warning: #ff9f0a; --caution: #ffd60a; --crit-low: #ff453a;
+    --bat-border: #8e8e93; --bat-bg: #2c2c2e; --bat-text: #ffffff;
+    --bat-pos: #ff453a; --bat-neg: #0a84ff; --bat-bridge: #bf5af2; --bat-bridge-border: #ac4ec5;
+}
+
+/* =========================================
+   2. 全域重設與排版 (Global Reset & Typography)
+   ========================================= */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+    margin: 0;
+    font-family: var(--ui-font);
+    background: var(--bg);
+    color: var(--text-main);
+    -webkit-font-smoothing: antialiased;
+    font-size: 1rem;
+}
+
+/* =========================================
+   3. 佈局與容器 (Layout & Containers)
+   ========================================= */
+.container {
+    max-width: 980px;
+    margin: 12px auto;
+    padding: 0 10px;
+}
+
+.card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(30, 50, 80, 0.04);
+}
+
+.card.small { padding: 8px; }
+
+.card-header {
     display: flex;
-    flex-direction: column;
-    gap: var(--gap-v-min); /* ИСПОЛЬЗУЕМ МИНИМАЛЬНЫЙ ОТСТУП */
-    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 8px;
 }
-.service-actions-block {
-    display: flex;
-    flex-direction: column;
-    gap: var(--gap-v-min);
-    width: 100%;
-    margin-top: var(--gap-v-min); /* Дополнительный отступ для отделения блоков */
+
+.card-header h2, .card-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
 }
-.button-row {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    gap: 12px;
+
+.footer {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 8px 12px;
+    color: var(--muted);
+    font-size: 0.8rem;
 }
-.button-pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    width: 100%;
-    max-width: 400px;
-}
-.hint-row {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-}
-.hint-pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    width: 100%;
-    max-width: 400px;
-}
-.big{
-    min-height: 38px; /* СЖАТИЕ V2: Дальнейшее сжатие высоты кнопки */
-    padding: 6px 12px; /* СЖАТИЕ V2: Уменьшен padding */
+
+/* =========================================
+   4. UI 元件 (UI Components)
+   ========================================= */
+/* --- 按鈕 (Buttons) --- */
+.big {
+    min-height: 38px;
+    padding: 6px 12px;
     border-radius: 8px;
     border: none;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 1rem;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -127,16 +151,21 @@ body{
     transition: background-color 0.2s, filter 0.2s;
     width: 100%;
 }
-.big:hover:not(:disabled){filter:brightness(0.95)}
-.big:disabled { background-color: #e0e0e0; color: #9e9e9e; cursor: not-allowed; }
+.big:hover:not(:disabled) { filter: brightness(0.95); }
+.big:disabled {
+    background-color: rgba(0,0,0,0.1);
+    color: var(--muted);
+    cursor: not-allowed;
+}
 .btn-data { background-color: var(--primary); color: white; }
 .btn-service { background-color: var(--warn); color: white; }
 .btn-func { background-color: var(--success); color: white; }
-.btn-hint { 
-    font-size: 10px; /* СЖАТИЕ V2: Уменьшен шрифт подсказки */
-    color: var(--muted); 
-    text-align: center; 
-    min-height: 2.2em; /* СЖАТИЕ V2: Дальнейшее сжатие высоты */
+
+.btn-hint {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: center;
+    min-height: 2.2em;
     line-height: 1.2;
     display: flex;
     align-items: center;
@@ -144,367 +173,640 @@ body{
     padding: 0 4px;
 }
 
-/* --- Стили для Спиннера --- */
-.spinner {
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top: 3px solid #fff;
-  border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  animation: spin 1s linear infinite;
-  display: inline-block;
-  margin-right: 8px;
-  flex-shrink: 0;
+/* --- 操作按鈕網格 (Action Grids) --- */
+.actions-grid, .service-actions-block {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-v-min);
+    width: 100%;
 }
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-/* -------------------------- */
+.service-actions-block { margin-top: var(--gap-v-min); }
 
-.kv { display: flex; flex-direction: column; gap: 6px; } 
-.kv-row {
-  display: flex; justify-content: space-between; align-items: baseline;
-  border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; 
-  font-size: 15px;
+.button-row, .hint-row {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    gap: 12px;
 }
-.kv-row:last-child { border-bottom: none; }
-.k { color: var(--muted); flex-shrink: 0; margin-right: 16px; }
-.v { font-weight: 600; text-align: right; word-break: break-all; }
 
-/* --- Стили для Бэйджей --- */
+.button-pair, .hint-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.button-flex {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.mt-10 {
+    margin-top: 10px;
+}
+
+/* --- 標籤與狀態 (Badges & Status) --- */
 .badge {
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 700;
-  color: white;
-  text-transform: uppercase;
-  line-height: 1;
-  display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+    line-height: 1;
+    display: inline-block;
 }
 .badge-danger { background-color: var(--warn); }
 .badge-success { background-color: var(--success); }
-/* -------------------------- */
 
-/* --- СЖАТИЕ И ПОДЪЕМ КОНТУРА БАТАРЕИ --- */
-.battery-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 10px auto 4px; /* СЖАТИЕ V2: ПОДНЯТ ВЫШЕ (10px) и СЖАТ СНИЗУ (4px) */
-    max-width: 500px;
-}
-.battery-pack {
-    display: flex;
-    flex-direction: column;
-    gap: 4px; 
-    padding: 12px; /* СЖАТИЕ V2: Сильное сжатие контура */
-    background-color: #f0f2f5;
-    border-radius: 10px;
-    width: 100%;
-}
-.battery-cells {
-    display: flex;
-    justify-content: center;
-    gap: var(--cell-gap);
-    position: relative; 
-    width: 100%;
-}
-.battery-numbers {
-    display: flex;
-    justify-content: center;
-    gap: var(--cell-gap);
-    width: 100%;
-}
-.cell-container {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 65px; 
-}
-.cell-number {
-    width: 65px;
-    text-align: center;
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
     font-weight: bold;
-    font-size: 14px;
-    color: #333;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-block;
 }
-.battery-connectors {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    pointer-events: none;
-    z-index: 0;
-}
-.connector {
-    position: absolute;
-    background: #555;
-    height: 4px;
-    border-radius: 2px;
-    z-index: 0;
-}
-.cell-gfx {
-    width: 65px;
-    height: 100px;
-    border: 2px solid #555;
-    border-radius: 8px;
-    background-color: #e0e0e0;
-    position: relative;
-    display: flex;
-    z-index: 1;
-}
-.cell-gfx.imbalanced {
-    background-color: #f0f0f0 !important;
-    border: 2px dashed var(--warn) !important;
-    animation: pulse-warn 2s infinite;
-}
-@keyframes pulse-warn {
-    0% { border-color: var(--warn); }
-    50% { border-color: #ff9800; }
-    100% { border-color: var(--warn); }
-}
+.status-danger { background-color: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+.status-success { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
 
-/* --- FIX 3: Стиль для МЕРТВОЙ (0V) ячейки --- */
-.cell-gfx.dead-cell {
-    background-color: #f0f0f0 !important;
-    border: 2px solid var(--crit-low) !important;
-    position: relative; /* Нужно для pseudo-element */
-    overflow: hidden; /* Чтобы крест не вылезал за границы */
-}
-
-.cell-gfx.dead-cell::before,
-.cell-gfx.dead-cell::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 70%; /* Ширина креста (относительно 65px) */
-    height: 6px; /* Толщина креста */
-    background-color: var(--crit-low);
-    transform-origin: center;
-    z-index: 10;
-}
-
-.cell-gfx.dead-cell::before {
-    transform: translate(-50%, -50%) rotate(45deg);
-}
-
-.cell-gfx.dead-cell::after {
-    transform: translate(-50%, -50%) rotate(-45deg);
-}
-
-/* Скрываем содержимое мертвой ячейки, чтобы крест был виден */
-.cell-gfx.dead-cell .cell-gfx-content,
-.cell-gfx.dead-cell .cell-cap {
-    opacity: 0.1; /* Делаем текст и полюсы почти невидимыми */
-}
-
-/* --- Стиль для критически низкой ячейки (НЕ 0V) --- */
-.cell-gfx.crit-low-animated {
-    background-color: #f0f0f0 !important;
-    border: 2px dashed var(--crit-low) !important;
-    animation: pulse-crit 1s infinite alternate;
-}
-@keyframes pulse-crit {
-    0% { border-color: var(--crit-low); background-color: #fff0f0; }
-    100% { border-color: #8b0000; background-color: #fce7e7; }
-}
-/* ------------------------------------------ */
-
-.cell-container.flipped .cell-gfx-content {
-    flex-direction: column-reverse;
-}
-.cell-cap {
-    position: absolute;
-    width: 24px;
-    height: 6px;
-    background-color: #777;
-    left: 50%;
-    transform: translateX(-50%);
-    top: -8px;
-    border-radius: 3px 3px 0 0;
-}
-.cell-container.flipped .cell-cap {
-    top: auto;
-    bottom: -8px;
-    border-radius: 0 0 3px 3px;
-}
-.cell-gfx-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    height: 100%;
-    width: 100%;
-    padding: 5px 0;
-    z-index: 1; /* Убедимся, что контент под крестом */
-    position: relative;
-}
-.cell-pole { 
-    font-size: 18px; 
-    font-weight: bold; 
-    color: #333; 
-}
-.cell-gfx-vol { 
-    font-size: 14px; 
-    font-weight: 700; 
-    color: #000; 
-}
-.pack-summary {
-    text-align: center;
-    margin-top: 2px; /* СЖАТИЕ V2: Уменьшен отступ над текстом */
-    font-size: 15px;
-    font-weight: 600;
-}
-.pack-summary .soc {
-    font-size: 20px;
-    color: var(--success);
-}
-.soc-bar-container {
-  width: 100%;
-  max-width: 300px;
-  height: 12px;
-  background-color: #e0e0e0;
-  border-radius: 6px;
-  margin: 8px auto 0; 
-  overflow: hidden;
-}
-.soc-bar-value {
-  height: 100%;
-  background-color: var(--success);
-  border-radius: 6px;
-  transition: width 0.5s ease;
-}
-.delta-info {
-    text-align: center;
-    margin-top: 8px;
-    font-size: 14px;
-    color: var(--muted);
-}
-.delta-value {
-    font-weight: bold;
-    color: var(--warn);
-}
-/* -- Конец визуализации -- */
-
-/* --- КОМПАКТНЫЙ АЛЕРТ --- */
-#limitedSupportAlert {
-    margin-bottom: 12px;
-}
-.alert.info{
-    background:#e3f2fd; 
-    border:1px solid #bbdefb; 
-    color:#0d47a1;
-    font-size: 13px; /* СЖАТИЕ V2: Уменьшен шрифт */
-    padding: 8px 10px; /* СЖАТИЕ V2: Уменьшен padding */
-    line-height: 1.3;
-}
-.alerts{margin-top:10px; display: flex; flex-direction: column; gap: 8px;} 
-.alert{padding:10px;border-radius:8px; font-size: 14px; line-height: 1.4;} 
-.alert.warn{background:#fff8e1;border:1px solid #ffe0b2;color:#6b3a00}
-.alert.danger{background:#ffebee;border:1px solid #ffcdd2;color:#a31b1b}
-.log-spoiler { padding: 0; }
-.log-spoiler summary {
-    padding: 10px; 
-    cursor: pointer;
-    font-size: 18px;
-    font-weight: 600;
-}
-.logbox{background:#2b2b2b; color:#a9b7c6; font-family:monospace; border-radius: 0 0 var(--radius) var(--radius);padding:12px;overflow:auto;height:200px;font-size:12px; resize: vertical; margin-top: -8px;}
-.footer{max-width:980px;margin:0 auto;padding:8px 12px;color:var(--muted);font-size:13px}
-#notification { 
-    grid-column: 1 / -1;
-    padding: 10px; 
-    margin-top: 8px; border-radius: 5px; 
-    text-align: center; font-weight: bold;
+/* --- 提示框 (Alerts) --- */
+.alerts { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.alert { padding: 10px; border-radius: 8px; font-size: 0.9rem; line-height: 1.4; }
+#limitedSupportAlert { margin-bottom: 12px; }
+#notification {
+    grid-column: 1 / -1; padding: 10px; margin-top: 8px;
+    border-radius: 5px; text-align: center; font-weight: bold;
 }
 .success { background-color: #d4edda; color: #155724; }
 .danger { background-color: #f8d7da; color: #721c24; }
 .info { background-color: #d1ecf1; color: #0e566c; }
 
-/* Адаптивность для мобильных устройств */
+/* --- 讀取中旋轉圖示 (Spinner) --- */
+.spinner {
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid #fff;
+    border-radius: 50%;
+    width: 16px; height: 16px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 8px; flex-shrink: 0;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* =========================================
+   5. 頁首與頂部欄 (Header & Topbar)
+   ========================================= */
+.topbar {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+    padding: 8px 12px; background: var(--card);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); gap: 12px;
+}
+.header-left { display: flex; align-items: center; gap: 8px; flex-grow: 1; }
+.header-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.header-status {
+    width: 100%; order: 3;
+    background: rgba(0,0,0,0.05);
+    border-radius: 8px; padding: 6px 8px;
+    text-align: center; font-weight: 800; font-size: 1.6rem;
+}
+.logo { font-size: 24px; }
+.title-block { display: flex; flex-direction: column; }
+.title { font-weight: 600; font-size: 1.2rem; }
+.subtitle { font-size: 0.8rem; color: var(--muted); }
+
+.lang-block { display: flex; gap: 2px; background: rgba(0,0,0,0.05); border-radius: 8px; padding: 4px; }
+.lang {
+    border-radius: 6px; padding: 4px 8px; border: none;
+    background: transparent; cursor: pointer;
+    font-size: 0.9rem; color: var(--text-main);
+}
+.lang.active { background: var(--primary); color: white; font-weight: 600; }
+.btn-refresh { display: none !important; }
+
+/* =========================================
+   6. 數據顯示 (Data Visualization)
+   ========================================= */
+/* --- ROM ID 特殊樣式 --- */
+ .rom-id-style {
+    font-family: 'Courier New', monospace;
+    color: var(--text-sub);
+    font-size: 0.8em;
+    background: rgba(0,0,0,0.05);
+    padding: 1px 5px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    display: inline-block;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* --- 數值顏色 --- */
+.v b { font-size: 1.1em; }
+.val-danger { color: var(--warn); font-weight: bold; }
+.val-warning { color: var(--warning); font-weight: bold; }
+.val-safe { color: var(--success); font-weight: bold; }
+
+/* --- 鍵值對列表 (Key-Value Rows) --- */
+.kv { display: flex; flex-direction: column; gap: 6px; }
+.kv-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.kv-row:last-child { border-bottom: none; }
+.k {
+    color: var(--muted);
+    flex-shrink: 0;
+    margin-right: 16px;
+    min-width: 120px;
+    text-align: left;
+}
+.v {
+    font-weight: 600;
+    text-align: right;
+    word-break: break-all;
+    flex-grow: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 4px;
+}
+
+/* --- 序號特殊樣式 --- */
+.serial-text {
+    font-family: 'Courier New', monospace;
+    color: var(--primary);
+    font-weight: bold;
+    background: rgba(25, 118, 210, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* --- 日誌區塊 (Logs) --- */
+.log-spoiler {
+    padding: 0;
+}
+.log-spoiler summary {
+    padding: 10px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+.logbox {
+    background: #2b2b2b;
+    color: #f0f0f0;
+    font-family: monospace;
+    border-radius: 0 0 var(--radius) var(--radius);
+    padding: 12px;
+    overflow: auto;
+    height: 40vh;
+    min-height: 300px;
+    font-size: 0.85rem;
+    resize: vertical;
+    margin-top: -8px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+code {
+    background: rgba(0,0,0,0.05);
+    color: #c7254e;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    border: 1px solid var(--border-color);
+}
+
+/* --- 進階資訊區塊 (Advanced Section) --- */
+.adv-section-title {
+    background: rgba(0,0,0,0.03);
+    padding: 8px 12px;
+    margin: 15px -15px 10px -15px;
+    font-weight: bold;
+    font-size: 0.9em;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+}
+.adv-section-title .right { font-size: 0.8em; color: #666; }
+.adv-header {
+    display: flex; justify-content: space-between; font-weight: bold;
+    padding: 10px 0; border-top: 1px solid var(--border-color); margin-top: 10px;
+}
+.kv-item {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; padding: 8px 0; border-bottom: 1px solid var(--border-color);
+}
+.kv-item .value {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700; text-align: right; word-break: break-all; color: var(--text-main);
+}
+
+/* =========================================
+   7. 電池視覺化系統 (Battery Visualization)
+   ========================================= */
+/* --- 基礎變數 --- */
+   :root {
+    --actual-gap: 22px; /* 這裡建議直接給定一個數值，例如 22px，或是您原本的計算值 */
+    --final-gap: 12px;
+}
+
+   .battery-layout-box { 
+    display: flex; 
+    justify-content: center; 
+    align-items: flex-start;
+    /* 必須與下方 calc 使用同一個變數 */
+    gap: var(--fixed-gap); 
+    padding: 60px 10px; 
+    background: var(--card); 
+    width: 100%;
+}
+
+/* --- 電芯本體 --- */
+.battery-cell-wrapper { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    position: relative; 
+    width: 44px; /* 與 cell-body 同寬，避免 wrapper 過大 */
+}
+.cell-body { 
+    width: 44px; height: 110px; 
+    border: 3px solid var(--bat-border); 
+    border-radius: 2px; 
+    background: var(--bat-bg); 
+    position: relative; 
+    display: flex; 
+    z-index: 2;
+    box-sizing: border-box; /* 確保 110px 包含 3px 邊框 */
+}
+
+/* --- 壞掉電芯的 "X" 樣式 --- */
+.cell-body.dead-cell {
+    background-image: 
+        linear-gradient(45deg, transparent calc(50% - 2.5px), var(--crit-low) calc(50% - 2.5px), var(--crit-low) calc(50% + 2.5px), transparent calc(50% + 2.5px)),
+        linear-gradient(-45deg, transparent calc(50% - 2.5px), var(--crit-low) calc(50% - 2.5px), var(--crit-low) calc(50% + 2.5px), transparent calc(50% + 2.5px));
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.cell-body.dead-cell .cell-fill, 
+.cell-body.dead-cell .inner-label, 
+.cell-body.dead-cell .cell-voltage-text {
+    opacity: 0.1; /* Fade out internal content */
+}
+
+/* --- 電量填充與方向 --- */
+.cell-fill { width: 100%; transition: height 0.4s; align-self: flex-end; }
+.upward { flex-direction: column-reverse; } 
+.downward { flex-direction: column; }  
+
+/* --- 正極凸點 --- */
+.pos-tip {
+    position: absolute; width: 16px; height: 6px; background: var(--bat-border); 
+    left: 50%; transform: translateX(-50%); z-index: 5;
+}
+.tip-top { top: -9px; border-radius: 2px 2px 0 0; }
+.tip-bottom { bottom: -9px; border-radius: 0 0 2px 2px; }
+
+/* --- 電芯連接線 (Bridge) --- */
+.cell-body.has-bridge-top::after,
+.cell-body.has-bridge-bottom::after {
+    content: "";
+    position: absolute;
+    /* 起點：電池寬度 44px 的中心 = 22px */
+    left: 22px; 
+    
+    /* 長度公式：電池寬度(44px) + 容器動態間距 */
+    /* 這樣不論 gap 變大變小，連線都會自動伸縮 */
+    width: calc(44px + var(--current-gap)); 
+    
+    height: 6px;
+    background: var(--bat-bridge);
+    border: 1px solid var(--bat-bridge-border);
+    z-index: 4;
+    box-sizing: border-box;
+
+    /* 解決 100% 下的細微縫隙 */
+    box-shadow: 0 0 0.5px var(--bat-bridge);
+    transform-origin: left center;
+}
+
+.cell-body.has-bridge-top::after {
+    top: -3px; /* 高度的一半，精確壓在頂緣中心 */
+    /* 核心技巧：利用 box-shadow 填補 100% 縮放時的次像素白邊 */
+    box-shadow: 0 0.5px 0 var(--bat-bridge);
+}
+
+.cell-body.has-bridge-bottom::after {
+    bottom: -3px; /* 高度的一半，精確壓在底緣中心 */
+    /* 核心技巧：填補下方的白邊 */
+    box-shadow: 0 -0.5px 0 var(--bat-bridge);
+}
+
+.cell-body.has-bridge-top::after,
+.cell-body.has-bridge-bottom::after {
+    content: "";
+    position: absolute;
+    
+    /* 修正起點：從 22px 改為 21px，往左多吃 1px */
+    left: 21px; 
+    
+    /* 修正長度：從 44px 改為 46px，加上間隔 */
+    /* 這樣左右各多出 1px 的重疊，絕對不會有白邊 */
+    width: calc(62px + var(--current-gap)); 
+    
+    height: 6px;
+    background: var(--bat-bridge);
+    border: 1px solid var(--bat-bridge-border);
+    z-index: 4;
+    box-sizing: border-box;
+
+    /* 渲染優化 */
+    transform-origin: left center;
+    /* 增加 1px 陰影作為最後一道防線，填補任何抗鋸齒產生的虛線 */
+    box-shadow: 0 0 1px var(--bat-bridge);
+}
+
+/* --- 電芯內部標示 (+/-) --- */
+.inner-label {
+    position: absolute; width: 100%; text-align: center; left: 0;
+    font-weight: 900; font-size: 1.4rem; z-index: 10;
+}
+.label-top { top: 4px; }
+.label-bottom { bottom: 4px; }
+.pos-color { color: var(--bat-pos); } 
+.neg-color { color: var(--bat-neg); }
+
+/* --- 電芯電壓文字 --- */
+.cell-voltage-text { 
+    position: absolute; width: 100%; text-align:center; top:50%; transform:translateY(-50%);
+    font-size: 0.8rem; font-weight: bold; z-index: 6; color: var(--bat-text);
+}
+
+/* =========================================
+   8. OTA & Extras
+   ========================================= */
+/* --- OTA 更新區塊 --- */
+.ota-card { margin-top: 10px; }
+.ota-content { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+.ota-form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.ota-input {
+    border: 1px solid var(--border-color); padding: 5px;
+    border-radius: 4px; background: var(--bg); color: var(--text-main);
+}
+.ota-hint { font-size: 0.8em; color: var(--text-sub); }
+
+/* --- SOH 迷你進度條 --- */
+.mini-progress-bar {
+    width: 50px; height: 6px;
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 3px; overflow: hidden;
+}
+.mini-progress-fill {
+    height: 100%; border-radius: 3px; transition: width 0.5s ease;
+}
+
+/* --- 動畫 (Animations) --- */
+@keyframes flash-opacity {
+    0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; }
+}
+.flash-warn { animation: flash-opacity 1.5s infinite ease-in-out; }
+
+/* --- 參考來源視窗 --- */
+.ref-window {
+    max-height: 120px; overflow-y: auto;
+    background-color: var(--bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px; padding: 10px; font-size: 0.85rem;
+}
+.ref-window ul { margin: 0; padding-left: 20px; }
+.ref-window li { margin-bottom: 6px; }
+.ref-window a {
+    color: var(--primary); text-decoration: none; word-break: break-all;
+}
+.ref-window a:hover { text-decoration: underline; }
+
+/* =========================================
+   9. 響應式設計 (Responsive Design)
+   ========================================= */
 @media (max-width: 768px) {
-    .button-pair, .hint-pair {
-        gap: 8px;
-        max-width: 100%;
-    }
-    
-    .big {
-        font-size: 13px;
-        padding: 6px 6px; 
-        min-height: 36px;
-    }
-    
-    .btn-hint {
-        font-size: 9px;
-        min-height: 2.5em;
-    }
-    
-    .battery-pack {
-        padding: 10px;
-        gap: 4px; 
-    }
-    
-    .battery-cells {
-        gap: 8px; 
-    }
-    
-    .cell-gfx {
-        width: 55px;
-        height: 85px;
-    }
-    
-    .cell-container {
-        width: 55px;
-    }
-    
-    .cell-number {
-        width: 55px;
-        font-size: 12px;
-    }
-    
-    .cell-gfx-vol {
-        font-size: 11px;
-    }
-    
-    .topbar {
-        gap: 8px;
-    }
-    
-    .header-left {
-        order: 1; 
-    }
-    .header-right {
-        order: 2;
-    }
-    .header-status {
-        order: 3;
-    }
+    .button-pair, .hint-pair { gap: 8px; max-width: 100%; }
+    .big { font-size: 0.85rem; padding: 6px 6px; min-height: 36px; }
+    .btn-hint { font-size: 0.6rem; min-height: 2.5em; }
+    .topbar { gap: 8px; }
+    .header-left { order: 1; }
+    .header-right { order: 2; }
+    .header-status { order: 3; }
 }
 
 @media (max-width: 480px) {
-    .button-pair, .hint-pair {
-        gap: 6px;
+    .button-pair, .hint-pair { gap: 6px; grid-template-columns: 1fr 1fr; }
+    .big { font-size: 0.8rem; padding: 5px 4px; min-height: 35px; }
+    .btn-hint { font-size: 0.55rem; line-height: 1.2; }
+}
+
+/* =========================================
+   10. 舊版響應式優化 (待整合)
+   ========================================= */
+#model {
+    word-break: break-word;
+}
+
+:root {
+    font-size: clamp(16px, 4.5vw, 22px);
+    /* 基礎字體大小自適應，最小16px，最大22px */
+}
+
+body {
+    background-color: var(--bg);
+    /* iOS 風格背景 */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    padding: var(--base-spacing);
+    max-width: 800px;
+    /* 放寬最大寬度 */
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: calc(var(--base-spacing) * 1.2);
+    margin-bottom: var(--base-spacing);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* 按鈕群組優化 */
+.button-pair {
+    display: flex;
+    gap: var(--base-spacing);
+    margin-bottom: var(--base-spacing);
+}
+
+/* 讓按鈕更大、更好按 */
+button.big {
+    flex: 1;
+    padding: 0.8em;
+    font-size: 1.1rem;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+}
+
+button.big:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+}
+
+/* 數據表格行優化 */
+.kv-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6em 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 1rem;
+}
+
+.kv-item:last-child {
+    border-bottom: none;
+}
+
+.kv-item .key {
+    color: var(--text-sub);
+    font-weight: 500;
+}
+
+.kv-item .value {
+    font-weight: 700;
+    font-size: 1.1em;
+    color: var(--text-main);
+}
+
+/* 電池圖示自適應放大 */
+.battery-layout-box {
+    container-type: inline-size;
+    container-name: battery-container;
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+
+    /* 1. 統一間隔變數 (取代 2vw) */
+    --current-gap: clamp(10px, 2cqw, 20px);
+    gap: var(--current-gap) !important;
+}
+
+/* 當容器夠大時（大螢幕手機或電腦），才跳到下一個固定像素值 */
+@container battery-container (min-width: 400px) {
+    .battery-layout-box {
+        --current-gap: 16px;
     }
-    
-    .big {
-        font-size: 12px;
-        padding: 5px 4px;
-        min-height: 35px;
+}
+
+@container battery-container (min-width: 600px) {
+    .battery-layout-box {
+        --current-gap: 20px;
     }
-    
-    .btn-hint {
-        font-size: 8px;
-        line-height: 1.2;
-    }
-    
-    .button-pair, .hint-pair {
-        grid-template-columns: 1fr 1fr;
-    }
+}
+
+.battery-cell-wrapper {
+    width: 16vw;
+    /* 寬度佔螢幕 16% */
+    max-width: 80px;
+    height: 26vw;
+    /* 高度保持比例 */
+    max-height: 130px;
+    position: relative;
+}
+
+/* 修正：讓連接線寬度也自適應 */
+.bridge-top,
+.bridge-bottom {
+    width: calc(100% + 2vw);
+}
+
+.cell-voltage-text {
+    font-size: clamp(0.7rem, 2.5vw, 1rem);
+    /* 電壓文字自適應 */
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* 標題列優化 */
+.topbar {
+    padding: var(--base-spacing);
+    background: var(--card);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+}
+
+.title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+.subtitle {
+    font-size: 0.9rem;
+    color: var(--text-sub);
+}
+
+/* 日誌框字體加大 */
+.logbox {
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* --- 按鍵狀態顏色優化 --- */
+.btn-blue {
+    background-color: #2196F3 !important;
+    color: white !important;
+}
+
+.btn-red {
+    background-color: #f44336 !important;
+    color: white !important;
+}
+
+.btn-yellow {
+    background-color: #ffeb3b !important;
+    color: black !important;
+}
+
+.btn-gray {
+    background-color: #9e9e9e !important;
+    color: white !important;
+}
+
+/* 確保 disabled 狀態樣式優先級最高 */
+button:disabled {
+    background-color: #e0e0e0 !important;
+    color: #9e9e9e !important;
+    cursor: not-allowed;
+}
+
+/* 修正：電池連接線定位 */
+.bridge-bottom {
+    position: absolute;
+    bottom: -5px !important;
+    /* 強制套用：微調使其與電池底部重疊 */
+    left: 50%;
 }

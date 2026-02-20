@@ -1,825 +1,687 @@
-// data/app.js - ИСПРАВЛЕННАЯ ВЕРСИЯ (ФИКС СЛИЯНИЯ lastData, ФИКС ВИЗУАЛИЗАЦИИ 0V, ФИКС ОТОБРАЖЕНИЯ ТЕМПЕРАТУРЫ)
+/**
+ * Makita BMS Diagnostic System - Final Integrated Edition
+ * 整合功能：0V過濾、0xB6熔絲清除、自動語言對接、數據深度合併
+ */
 
-const LANGS = {
-  ua: {
-    subtitle: "Діагностика батареї",
-    sectionTitle: "Параметри батареї",
-    rawTitle: "Журнал",
-    footerText: "Версія: ESP-OBI Web UI",
-    readStatic: "1. Зчитати Інфо",
-    readDynamic: "2. Оновити дані",
-    hintReadStatic: "Визначити модель та зчитати статичні дані",
-    hintReadDynamic: "Зчитати напругу та температуру",
-    clearErrors: "Очистити помилки",
-    hintClear: "Скинути помилки BMS",
-    ledTest: "Тест LED",
-    hintLed: "Увімкнути/вимкнути LED",
-    refresh: "Оновити статус",
-    logPreamble: "Ініціалізація...",
-    uiReady: "Інтерфейс готовий",
-    batteryConnected: "Батарея: підключена",
-    batteryNot: "Батарея: не виявлена",
-    reading: "Зчитування...",
-    ledOn: "LED увімкнено",
-    ledOff: "LED вимкнено",
-    cell: "Ячейка",
-    alertImbalanceTitle: "<b>⚠️ Розбаланс!</b>",
-    alertImbalanceBody: "Різниця між ячейками перевищує 0.1 В. Рекомендується балансування.",
-    alertCritLowTitle: "<b>❌ Критично низька напруга!</b>",
-    alertCritLowBody: "Напруга на одній з ячейок нижче 2.5 В. Ймовірно, елемент деградував.",
-    alertLimitedSupportTitle: "<b>ℹ️ Обмежена підтримка</b>",
-    alertLimitedSupportBody: "Для цієї моделі батареї сервісні функції не підтримуються, тому блок приховано.",
-    alertAllGood: "Всі параметри в нормі",
-    packSummary: "Загальна напруга:",
-    soc: "Рівень заряду:",
-    delta: "Розбаланс:",
-    locked: "Заблоковано",
-    unlocked: "Розблоковано",
-    // Перевод параметров
-    model: "Модель",
-    cycles: "Цикли заряду",
-    state: "Стан",
-    statusCode: "Код статусу",
-    mfg_date: "Дата виготовлення",
-    capacity: "Ємність",
-    connecting: "З'єднання...",
-    reconnecting: "Втрачено. Перепідключення...",
-    // --- NEW TEMPERATURE KEYS ---
-    tempBMS: "Температура BMS",
-    tempCell1: "Температура 1",
-    tempCell2: "Температура 2",
-    // --- NEW CRITICAL ALERTS KEYS ---
-    alertCritZeroV: "<b>Несправність батареї!</b> Одна або більше ячейок мають напругу 0 В. Подальша діагностика не має сенсу.",
-    alertAllLowV: "<b>Критично низька напруга!</b> Всі ячейки мають напругу нижче 0.5 В. Елементи, ймовірно, деградували.",
-  },
-  ru: {
-    subtitle: "Диагностика батареи",
-    sectionTitle: "Параметры батареи",
-    rawTitle: "Журнал",
-    footerText: "Версия: ESP-OBI Web UI",
-    readStatic: "1. Считать Инфо",
-    readDynamic: "2. Обновить данные",
-    hintReadStatic: "Определить модель и считать статические данные",
-    hintReadDynamic: "Считать напряжение и температуру",
-    clearErrors: "Очистить ошибки",
-    hintClear: "Сбросить ошибки БМС",
-    ledTest: "Тест LED",
-    hintLed: "Включить/выключить LED",
-    refresh: "Обновить статус",
-    logPreamble: "Инициализация...",
-    uiReady: "Интерфейс готов",
-    batteryConnected: "Батарея: подключена",
-    batteryNot: "Батарея: не обнаружена",
-    reading: "Чтение...",
-    ledOn: "LED включён",
-    ledOff: "LED выключен",
-    cell: "Ячейка",
-    alertImbalanceTitle: "<b>⚠️ Разбаланс!</b>",
-    alertImbalanceBody: "Разница между ячейками превышает 0.1 В. Рекомендуется балансировка.",
-    alertCritLowTitle: "<b>❌ Критически низкое напряжение!</b>",
-    alertCritLowBody: "Напряжение на одной из ячеек ниже 2.5 В. Вероятно, элемент деградировал.",
-    alertLimitedSupportTitle: "<b>ℹ️ Ограниченная поддержка</b>",
-    alertLimitedSupportBody: "Для этой модели батареи сервисные функции не поддерживаются, поэтому блок скрыт.",
-    alertAllGood: "Все параметры в норме",
-    packSummary: "Общее напряжение:",
-    soc: "Уровень заряда:",
-    delta: "Разбаланс:",
-    locked: "Заблокирован",
-    unlocked: "Разблокирован",
-    // Перевод параметров
-    model: "Модель",
-    cycles: "Циклы заряда",
-    state: "Состояние",
-    statusCode: "Код статуса",
-    mfg_date: "Дата производства",
-    capacity: "Ёмкость",
-    connecting: "Соединение...",
-    reconnecting: "Потеряно. Переподключение...",
-    // --- NEW TEMPERATURE KEYS ---
-    tempBMS: "Температура BMS",
-    tempCell1: "Температура 1",
-    tempCell2: "Температура 2",
-    // --- NEW CRITICAL ALERTS KEYS (FIXED PHRASE) ---
-    alertCritZeroV: "<b>Неисправность батареи!</b> Одна или более ячеек имеют напряжение 0 В. Дальнейшая диагностика не имеет смысла.",
-    alertAllLowV: "<b>Критически низкое напряжение!</b> Все ячейки имеют напряжение ниже 0.5 В. Элементы, вероятно, деградировали.",
-  },
-  en: {
-    subtitle: "Battery Diagnostics",
-    sectionTitle: "Battery Parameters",
-    rawTitle: "Log",
-    footerText: "Version: ESP-OBI Web UI",
-    readStatic: "1. Read Info",
-    readDynamic: "2. Update Data",
-    hintReadStatic: "Identify model and read static data",
-    hintReadDynamic: "Read voltages and temperatures",
-    clearErrors: "Clear Errors",
-    hintClear: "Reset BMS errors",
-    ledTest: "Test LED",
-    hintLed: "Turn on/off battery LEDs",
-    refresh: "Refresh status",
-    logPreamble: "Initializing...",
-    uiReady: "Interface ready",
-    batteryConnected: "Battery: connected",
-    batteryNot: "Battery: not detected",
-    reading: "Reading...",
-    ledOn: "LED on",
-    ledOff: "LED off",
-    cell: "Cell",
-    alertImbalanceTitle: "<b>⚠️ Imbalance!</b>",
-    alertImbalanceBody: "Difference between cells exceeds 0.1 V. Balancing is recommended.",
-    alertCritLowTitle: "<b>❌ Critically low voltage!</b>",
-    alertCritLowBody: "Voltage on one of the cells is below 2.5 V. The cell has likely degraded.",
-    alertLimitedSupportTitle: "<b>ℹ️ Limited Support</b>",
-    alertLimitedSupportBody: "Service functions are not supported for this battery model, so the block is hidden.",
-    alertAllGood: "All parameters are normal",
-    packSummary: "Total voltage:",
-    soc: "State of Charge:",
-    delta: "Imbalance:",
-    locked: "Locked",
-    unlocked: "Unlocked",
-    // Перевод параметров
-    model: "Model",
-    cycles: "Charge cycles",
-    state: "State",
-    statusCode: "Status code",
-    mfg_date: "Manufacture date",
-    capacity: "Capacity",
-    connecting: "Connecting...",
-    reconnecting: "Lost. Reconnecting...",
-    // --- NEW TEMPERATURE KEYS ---
-    tempBMS: "BMS Temperature",
-    tempCell1: "Temperature 1",
-    tempCell2: "Temperature 2",
-    // --- NEW CRITICAL ALERTS KEYS ---
-    alertCritZeroV: "<b>Battery defective!</b> One or more cells have 0 V. Further diagnosis is pointless.",
-    alertAllLowV: "<b>Critically low voltage!</b> All cells are below 0.5 V. Cells have likely degraded.",
-  }
-};
-
-let LANG = 'ua';
-let lastData = {}; // --- Инициализируем как пустой объект для слияния
+let lastData = {};
 let lastFeatures = null;
-let ledState = false;
-let ws = null;
-let reconnectInterval = null;
-let lastStatus = null; 
-const RECONNECT_DELAY = 3000;
+let sessionHistory = []; // 用於儲存本次連線的歷史數據
 
-function t(key){ return LANGS[LANG][key] || key; }
+function bindActions() {
+    console.log("Binding actions...");
 
-const el = id => document.getElementById(id);
-const logEl = el('log');
+    // 1. 讀取資訊
+    const btn1 = el('btnReadStatic');
+    if (btn1) {
+        // 按鍵 1 初始為藍色 (可用)
+        btn1.classList.add('btn-blue');
 
-const spinnerHtml = `<span class="spinner"></span>`;
-
-function log(s) {
-    if(!logEl) return;
-    if(logEl.textContent === t('logPreamble')) logEl.textContent = '';
-    logEl.textContent += (new Date().toLocaleTimeString()) + ' - ' + s + '\n';
-    logEl.scrollTop = logEl.scrollHeight;
-}
-
-function showNotification(message, type, duration = 3000) {
-    const notification = el('notification');
-    if(!notification) return;
-    
-    notification.textContent = message;
-    notification.className = type;
-    notification.style.display = 'block';
-    if (duration > 0) setTimeout(() => { notification.style.display = 'none'; }, duration);
-}
-
-function updateStatusText(statusKey) {
-    const statusText = el('statusText');
-    if (!statusText) return;
-    
-    lastStatus = statusKey; 
-    statusText.textContent = t(statusKey);
-    
-    if (statusKey === 'connecting' || statusKey === 'reconnecting' || statusKey === 'batteryNot') {
-        statusText.style.color = '#ff9800'; 
-    } else if (statusKey === 'batteryConnected' || statusKey === 'uiReady') {
-        statusText.style.color = '#2e7d32'; 
-    } else {
-         statusText.style.color = '#111';
-    }
-}
-
-function setButtonLoading(id, isLoading, textKey) {
-    const btn = el(id);
-    if (!btn) return;
-    
-    if (isLoading) {
-        btn.disabled = true;
-        btn.setAttribute('data-original-text', btn.textContent); 
-        btn.innerHTML = spinnerHtml + t(textKey);
-    } else {
-        btn.innerHTML = btn.getAttribute('data-original-text') || t(textKey);
-        btn.removeAttribute('data-original-text');
-    }
-}
-
-function sendCommand(cmd, data = {}) {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ command: cmd, ...data }));
-    } else {
-        log(t('reconnecting'));
-        showNotification(t('reconnecting'), 'danger', 0);
-    }
-}
-
-function connect() {
-    if (reconnectInterval) {
-        clearInterval(reconnectInterval);
-        reconnectInterval = null;
-    }
-    
-    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
-        return;
+        btn1.onclick = () => {
+            setButtonLoading('btnReadStatic', true, 'reading');
+            log(`${t('readStatic')}...`); // 1. 操作說明
+            WSClient.send('read_static');
+        };
     }
 
-    log(t('connecting'));
-    updateStatusText('connecting'); 
-    
-    ws = new WebSocket(`ws://${window.location.hostname}/ws`);
-    
-    ws.onopen = () => { 
-        log(t('uiReady')); 
-        updateStatusText('uiReady'); 
-        if (reconnectInterval) clearInterval(reconnectInterval);
-    };
+    // 2. 更新數據
+    const btn2 = el('btnReadDynamic');
+    if (btn2) {
+        // 按鍵 2 初始為灰色 (不可用)
+        btn2.classList.add('btn-gray');
 
-    ws.onclose = () => { 
-        log("WebSocket connection closed."); 
-        updateStatusText('reconnecting'); 
-        showNotification(t('reconnecting'), 'danger', 0); 
-        
-        if (!reconnectInterval) {
-            reconnectInterval = setInterval(connect, RECONNECT_DELAY);
-        }
-    };
+        btn2.onclick = () => {
+            setButtonLoading('btnReadDynamic', true, 'reading');
+            log(`${t('readDynamic')}...`); // 1. 操作說明
+            WSClient.send('read_dynamic');
+        };
+    }
 
-    ws.onerror = (err) => { 
-        log("WebSocket error."); 
-        ws.close();
-    };
+    // 3. 清除故障碼
+    const btnClearErrors = el('btnClearErrors');
+    if (btnClearErrors) {
+        // 按鍵 3 初始為灰色
+        btnClearErrors.classList.add('btn-gray');
 
-    ws.onmessage = handleWebSocketMessage;
-}
+        btnClearErrors.onclick = () => {
+            setButtonLoading('btnClearErrors', true, 'clearing');
+            log(`${t('clearErrors')}...`); // 1. 操作說明
+            WSClient.send('clear_errors');
+        };
+    }
 
+    // 4. 測試 LED (連動多國語言)
+    const btnLed = document.getElementById('btnLed');
+    if (btnLed) {
+        let isLedOn = false;
 
-function handleWebSocketMessage(event) {
-    try {
-        const msg = JSON.parse(event.data);
-        
-        if (msg.type !== 'presence' && msg.type !== 'debug') {
-             ['btnReadStatic', 'btnReadDynamic', 'btnClearErrors', 'btnLed'].forEach(id => {
-                 const btn = el(id);
-                 if (btn && btn.getAttribute('data-original-text')) {
-                     btn.innerHTML = btn.getAttribute('data-original-text');
-                     btn.removeAttribute('data-original-text');
-                     btn.disabled = false; 
-                 }
-             });
-        }
-        
-        showNotification('', 'info', 1);
+        // 按鍵 4 初始為灰色
+        btnLed.classList.add('btn-gray');
 
-        if (msg.type === 'debug') { 
-            log(msg.message); 
-            return; 
-        }
-        
-        if (msg.type === 'error') { 
-            log(`ERROR: ${msg.message}`); 
-            showNotification(msg.message, 'danger'); 
-        }
-        else if (msg.type === 'success') { 
-            log(`SUCCESS: ${msg.message}`); 
-            showNotification(msg.message, 'success'); 
-            
-            if (msg.message && (msg.message.includes('LED') || msg.message.includes('Светодиод'))) {
-                 const newLedState = msg.message.toLowerCase().includes('on') || msg.message.toLowerCase().includes('включен');
-                 ledState = newLedState;
-                 const btnLed = el('btnLed');
-                 if (btnLed) {
-                     btnLed.innerHTML = t(ledState ? 'ledTest' : 'ledTest'); 
-                 }
+        btnLed.onclick = function () {
+            isLedOn = !isLedOn;
+            const actionStatus = isLedOn ? 'on' : 'off';
+
+            // 修正：補上按鍵操作日誌
+            log(t('testing') || 'Testing LED...');
+
+            WSClient.send(actionStatus === 'on' ? 'led_on' : 'led_off');
+
+            // --- 視覺與文字更新 (使用妳提供的 ledOn/ledOff) ---
+            if (isLedOn) {
+                btnLed.style.background = "var(--success)"; // 改用變數
+                btnLed.style.color = "#fff";
+                // 使用 t() 函數讀取妳定義的 "LED 已開啟"
+                btnLed.innerText = typeof t === 'function' ? t('ledOn') : "LED ON";
+            } else {
+                btnLed.style.background = ""; // 恢復原色
+                btnLed.style.color = "";
+                // 使用 t() 函數讀取妳定義的 "LED 已關閉"
+                btnLed.innerText = typeof t === 'function' ? t('ledOff') : "LED OFF";
             }
+
+            // 同步更新下方 Hint
+            const hintLed = document.getElementById('hintLed');
+            if (hintLed) {
+                hintLed.innerText = isLedOn ? (typeof t === 'function' ? t('testing_short') : "Testing...") : "...";
+            }
+        };
+    }
+
+    // 5. 匯出 CSV
+    const btnExport = el('btnExport');
+    if (btnExport) {
+        // 按鍵 5 初始為灰色 (無數據)
+        btnExport.classList.add('btn-gray');
+        btnExport.onclick = exportToCSV;
+    }
+
+    // 6. 下載 MCU 紀錄
+    const btnMcuDl = el('btnMcuDownload');
+    if (btnMcuDl) {
+        btnMcuDl.onclick = () => {
+            window.location.href = '/datalog.csv';
+        };
+    }
+
+    // 7. 刪除 MCU 紀錄
+    const btnMcuDel = el('btnMcuDelete');
+    if (btnMcuDel) {
+        btnMcuDel.onclick = async () => {
+            if (confirm(t('confirm_delete_mcu_log'))) {
+                await fetch('/api/delete_log');
+                alert(t('log_deleted_success'));
+            }
+        };
+    }
+
+    // 8. 儲存空間更新按鈕
+    const refreshBtn = el('refreshStorage');
+    if (refreshBtn) {
+        refreshBtn.onclick = () => {
+            WSClient.send('get_fs_info');
+            // 加上一個旋轉的視覺回饋
+            refreshBtn.style.transition = 'transform 0.5s';
+            refreshBtn.style.transform = 'rotate(360deg)';
+            setTimeout(() => {
+                refreshBtn.style.transform = 'rotate(0deg)';
+            }, 500);
+        };
+    }
+}
+
+// --- 主題切換邏輯 ---
+function initTheme() {
+    const btn = document.getElementById('btnTheme');
+    if (!btn) return;
+
+    // 1. 判斷初始狀態 (優先讀取 localStorage，否則跟隨系統)
+    const saved = localStorage.getItem('theme');
+    const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let isDark = saved === 'dark' || (!saved && sysDark);
+
+    const apply = (dark) => {
+        document.body.classList.remove('light-mode', 'dark-mode');
+        document.body.classList.add(dark ? 'dark-mode' : 'light-mode');
+        btn.textContent = dark ? '🌙' : '☀️'; // 切換圖示
+    };
+
+    apply(isDark);
+
+    btn.onclick = () => {
+        isDark = !isDark;
+        apply(isDark);
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    };
+}
+
+window.addEventListener('load', async () => {
+    try {
+        initTheme(); // 初始化主題
+        if (typeof initLanguage === 'function') {
+            await initLanguage(); // 等待語言載入並套用
         }
-        else if (msg.type === 'presence') {
-            const statusKey = msg.present ? 'batteryConnected' : 'batteryNot';
-            updateStatusText(statusKey); 
-        } 
-        // --- FIX: Handle Static Data (Merge data, Render table only) ---
-        else if (msg.type === 'static_data') {
-            const overviewCard = el('overviewCard');
-            if (overviewCard) overviewCard.style.display = 'block';
-            
-            lastData = { ...lastData, ...msg.data }; // Слияние данных
-            renderData(lastData); // Рендер таблицы с объединенными данными
-            updateButtonStates(msg.features);
-            
-            // Скрытие/очистка динамических элементов
-            const area = el('cellsArea');
-            const numbersArea = el('cellsNumbers');
-            const summary = el('packSummary');
-            if (area) area.style.display = 'none';
-            if (numbersArea) numbersArea.style.display = 'none';
-            if (summary) summary.style.display = 'none';
-            
-            const alertsArea = el('alertsArea');
-            if(alertsArea) alertsArea.innerHTML = `<div class="alert info">${t('alertAllGood')}</div>`;
-            
-            log('Static data received.');
-            showNotification(t('readStatic') + " OK", 'success');
-        } 
-        // --- FIX: Handle Dynamic Data (Merge data, Render all) ---
-        else if (msg.type === 'dynamic_data') {
-            const overviewCard = el('overviewCard');
-            if (overviewCard) overviewCard.style.display = 'block';
-            
-            lastData = { ...lastData, ...msg.data }; // Слияние данных
-            renderData(lastData); // Рендер таблицы (включая температуру)
-            renderCells(lastData); // Рендер ячеек (напряжения)
-            renderAlerts(lastData, lastFeatures); // Рендер предупреждений
-            log("Live data updated");
-            showNotification(t('readDynamic') + " OK", 'success');
-        }
-    } catch (e) {
-        log("Error parsing WebSocket message: " + e.toString());
-        ['btnReadStatic', 'btnReadDynamic', 'btnClearErrors', 'btnLed'].forEach(id => {
-            setButtonLoading(id, false, id === 'btnReadStatic' ? 'readStatic' : (id === 'btnReadDynamic' ? 'readDynamic' : (id === 'btnClearErrors' ? 'clearErrors' : 'ledTest')));
+        
+        // 翻譯載入後，設定標準 data-lang-key 無法觸及的元素
+        document.title = t('app_title');
+        const themeBtn = el('btnTheme');
+        if(themeBtn) themeBtn.setAttribute('aria-label', t('theme_toggle_label'));
+
+        log(t('log_initializing'));
+        bindActions();
+        // 使用新模組初始化，並在連線成功時自動查詢空間
+        WSClient.init({
+            onMessage: handleMessage,
+            onOpen: () => {
+                WSClient.send('get_fs_info');
+            }
         });
+    } catch (e) {
+        console.error("Initialization failed", e);
     }
+});
+
+// 新增：集中計算衍生數據 (SOH, 顏色狀態)，避免重複邏輯
+function calculateDerivedData(data) {
+    // 1. SOH 計算
+    const cycles = Number(data.charge_cycles) || 0;
+    const overDis = Number(data.over_discharge) || 0;
+    const overLoad = Number(data.over_load) || 0;
+    const err04 = Number(data.err_cnt_04) || 0; // 過放錯誤 (嚴重)
+    const err05 = Number(data.err_cnt_05) || 0; // 過熱錯誤 (嚴重)
+    const err06 = Number(data.err_cnt_06) || 0; // 充電錯誤 (嚴重)
+    const err07 = Number(data.err_cnt_07) || 0; // 過流錯誤 (嚴重)
+
+    // 優化後的 SOH 算法：
+    // 1. 循環次數：每 100 次扣 5% (假設壽命 2000 次)
+    // 2. 過放紀錄 (歷史)：每 10 次扣 1% (這是正常使用耗損，權重降低)
+    // 3. 過載紀錄 (歷史)：每 10 次扣 1%
+    // 4. 錯誤計數 (嚴重)：每個錯誤扣 20% (這些才是導致鎖定的主因)
+    let soh = 100;
+    soh -= cycles * 0.05;
+    soh -= overDis * 0.1;
+    soh -= overLoad * 0.1;
+    soh -= (err04 + err05 + err06 + err07) * 20;
+
+    if (soh < 0) soh = 0;
+
+    data.health_soh = soh.toFixed(0); // 注入字串
+    data._sohColor = soh > 85 ? 'var(--success)' :
+        soh > 60 ? 'var(--warning)' : // 改用變數
+            'var(--warn)';
+
+    // 2. 鎖定狀態顏色
+    data._lockColor = 'inherit';
+    // lock_status 現在是數字：0=正常(綠), >0=鎖定(紅)
+    if (data.lock_status > 0) data._lockColor = 'var(--warn)';
+    else data._lockColor = 'var(--success)';
 }
 
-
-function setLang(lang){
-  if (!LANGS[lang]) lang = 'ua'; 
-  LANG = lang;
-  document.documentElement.lang = lang;
-  document.querySelectorAll('.lang').forEach(b=>b.classList.remove('active'));
-  
-  const activeBtn = el(`btn${lang.toUpperCase()}`);
-  if (activeBtn) activeBtn.classList.add('active');
-  
-  const elements = {
-    'subtitle': 'subtitle', 'sectionTitle': 'sectionTitle', 'rawTitle': 'rawTitle',
-    'footerText': 'footerText', 'btnReadStatic': 'readStatic', 'btnReadDynamic': 'readDynamic', 'hintReadStatic': 'hintReadStatic',
-    'hintReadDynamic': 'hintReadDynamic', 'btnClearErrors': 'clearErrors', 'hintClear': 'hintClear', 
-    'btnLed': 'ledTest', 'hintLed': 'hintLed'
-  };
-  
-  for(const id in elements) {
-    const element = el(id);
-    if(element && !element.querySelector('.spinner')) {
-      element.textContent = t(elements[id]);
-    }
-  }
-  
-  // Re-render parameters to apply new language strings
-  if (lastData) {
-      renderData(lastData); 
-      
-      const area = el('cellsArea');
-      if (area && area.style.display === 'flex') {
-          renderCells(lastData);
-          renderAlerts(lastData, lastFeatures);
-      } else {
-           const alertsArea = el('alertsArea');
-           if(alertsArea) alertsArea.innerHTML = `<div class="alert info">${t('alertAllGood')}</div>`;
-      }
-  }
-  if (lastFeatures) {
-      updateButtonStates(lastFeatures);
-  }
-  
-  if (lastStatus) {
-      updateStatusText(lastStatus); 
-  }
-}
-
-function updateButtonStates(features) {
-    lastFeatures = features;
-    const btnDynamic = el('btnReadDynamic');
-    const btnClear = el('btnClearErrors');
-    const btnLed = el('btnLed');
-    const serviceActions = el('serviceActions'); 
-
-    if (!btnDynamic || !btnClear || !btnLed || !serviceActions) return;
-
-    // --- ФИКС: Активация кнопки "Обновить данные" независимо от сервисных функций ---
-    btnDynamic.disabled = !features.read_dynamic;
-    if (!btnDynamic.getAttribute('data-original-text')) btnDynamic.innerHTML = t('readDynamic');
-    btnDynamic.classList.toggle('btn-data', features.read_dynamic);
-
-    const hasServiceFeatures = features.clear_errors || features.led_test;
-    
-    // --- ЛОГИКА СКРЫТИЯ/ОТОБРАЖЕНИЯ СЕРВИСНОГО БЛОКА ---
-    if (!hasServiceFeatures) {
-        serviceActions.style.display = 'none';
-    } else {
-        serviceActions.style.display = ''; 
-        
-        // Установка disabled для отдельных сервисных кнопок
-        btnClear.disabled = !features.clear_errors;
-        btnLed.disabled = !features.led_test;
-        
-        // Восстановление текста и классов для service buttons
-        if (!btnClear.getAttribute('data-original-text')) btnClear.innerHTML = t('clearErrors');
-        if (!btnLed.getAttribute('data-original-text')) btnLed.innerHTML = t('ledTest');
-        
-        btnClear.classList.toggle('btn-service', features.clear_errors);
-        btnLed.classList.toggle('btn-func', features.led_test);
-    }
-    
-    const limitedSupportAlert = el('limitedSupportAlert');
-    if (limitedSupportAlert) {
-        if (features && features.read_dynamic && !hasServiceFeatures) {
-            limitedSupportAlert.innerHTML = `${t('alertLimitedSupportTitle')} ${t('alertLimitedSupportBody')}`;
-            limitedSupportAlert.style.display = 'block';
-        } else {
-            limitedSupportAlert.style.display = 'none';
-        }
-    }
-}
-
-function renderData(data) {
+// 數據表格渲染 (請對齊 Langs_TW.js 的 Key)
+function renderDataTable(data) {
     const table = el('data-table');
     if (!table) return;
-    
-    table.innerHTML = '';
-    const createRow = (k, v) => `<div class="kv-row"><div class="k">${k}</div><div class="v">${v}</div></div>`;
-    
-    if (data.model) table.innerHTML += createRow(t('model'), data.model);
-    if (data.charge_cycles !== undefined && data.charge_cycles !== null) table.innerHTML += createRow(t('cycles'), data.charge_cycles);
-    
-    const state_key = (data.lock_status || '').toLowerCase();
-    if (state_key) {
-        const state_text = t(state_key);
-        const state_class = state_key === 'locked' ? 'badge-danger' : 'badge-success';
-        table.innerHTML += createRow(t('state'), `<span class="badge ${state_class}">${state_text}</span>`);
-    }
-    
-    if (data.mfg_date) table.innerHTML += createRow(t('mfg_date'), data.mfg_date);
-    if (data.capacity) table.innerHTML += createRow(t('capacity'), data.capacity);
-    
-    // --- FIX 4: Improved Temperature Rendering Logic ---
-    const renderTemp = (key, label) => {
-        // key may be a single key string or an array of alternative keys.
-        let val = undefined;
-        if (Array.isArray(key)) {
-            for (let k of key) {
-                if (data[k] !== undefined && data[k] !== null && !isNaN(parseFloat(data[k]))) {
-                    val = parseFloat(data[k]);
-                    break;
-                }
-            }
-        } else {
-            if (data[key] !== undefined && data[key] !== null && !isNaN(parseFloat(data[key]))) {
-                val = parseFloat(data[key]);
-            }
-        }
-        if (val !== undefined) {
-            table.innerHTML += createRow(label, val.toFixed(1) + ' °C');
-        }
-    };
-    
-    renderTemp(['temp_bms','temp1'], t('tempBMS'));
-    // renderTemp(['temp_cell_1','temp2'], t('tempCell1'));
-    // renderTemp(['temp_cell_2','temp2'], t('tempCell2'));
-    // --- END FIX 4 ---
-}
 
-const socTable = [
-    {v: 4.20, soc: 100}, {v: 4.15, soc: 95}, {v: 4.11, soc: 90}, {v: 4.08, soc: 85}, 
-    {v: 4.02, soc: 80}, {v: 3.98, soc: 75}, {v: 3.95, soc: 70}, {v: 3.91, soc: 65},
-    {v: 3.87, soc: 60}, {v: 3.85, soc: 55}, {v: 3.84, soc: 50}, {v: 3.82, soc: 45},
-    {v: 3.80, soc: 40}, {v: 3.79, soc: 35}, {v: 3.77, soc: 30}, {v: 3.75, soc: 25},
-    {v: 3.73, soc: 20}, {v: 3.71, soc: 15}, {v: 3.69, soc: 10}, {v: 3.61, soc: 5},
-    {v: 3.27, soc: 0}
-];
+    // 組合翻譯鍵值：LOCK_0, LOCK_1...
+    const lockVal = (data.lock_status !== undefined) ? t(`LOCK_${data.lock_status}`) : '--';
 
-function getSoC(voltage) {
-    if (voltage >= socTable[0].v) return 100;
-    if (voltage <= socTable[socTable.length - 1].v) return 0;
-    
-    for (let i = 0; i < socTable.length - 1; i++) {
-        if (voltage <= socTable[i].v && voltage >= socTable[i + 1].v) {
-            const upper = socTable[i];
-            const lower = socTable[i + 1];
-            const range = upper.v - lower.v;
-            const socRange = upper.soc - lower.soc;
-            const v_delta = voltage - lower.v;
-            return Math.round(lower.soc + (v_delta / range) * socRange);
-        }
-    }
-    return 0;
-}
+    // --- 2. 定義表格行數據 ---
+    const rows = [
+        { key: 'model', val: data.model || t('data_not_available') },
+        { key: 'serial', val: data.serial || t('data_not_available') },
+        { key: 'chip_rom_id', val: data.chip_rom_id || data.rom_id || t('data_not_available'), color: 'var(--primary)' }, // 改用變數
+        { key: 'capacity', val: data.capacity || t('data_not_available') },
+        { key: 'prod_date', val: data.prod_date || t('data_not_available') },
+        { key: 'cycles', val: `${data.charge_cycles || 0} ${t('times')}`, color: 'var(--success)' },
+        { key: 'lock_status', val: lockVal, color: data._lockColor }
+    ];
 
-function renderCells(data){
-  const area = el('cellsArea');
-  const numbersArea = el('cellsNumbers');
-  const summary = el('packSummary');
-  
-  if (!area || !numbersArea || !summary) return;
-  
-  if (data && data.cell_voltages && data.cell_voltages.length > 0) {
-    area.innerHTML = '';
-    numbersArea.innerHTML = '';
-    summary.innerHTML = '';
-    // Show visualization elements now that dynamic data is loaded
-    area.style.display = 'flex';
-    numbersArea.style.display = 'flex';
-    summary.style.display = 'block';
-
-    const voltages = data.cell_voltages;
-    // Live voltages (for SoC/Delta calculation)
-    const live_voltages = voltages.filter(v => v > 0.5);
-    
-    if (voltages.length === 0) return;
-
-    let maxV = 0, minV = 0, deltaV = 0, imbalance = false, critLow = false, avgVoltage = 0, socPercent = 0;
-    
-    if (live_voltages.length > 0) {
-        maxV = Math.max(...live_voltages);
-        minV = Math.min(...live_voltages);
-        deltaV = maxV - minV;
-        imbalance = deltaV > 0.1;
-        critLow = minV < 2.5; 
-        avgVoltage = live_voltages.reduce((a,b) => a+b, 0) / live_voltages.length;
-    }
-    
-    const connectorsContainer = document.createElement('div');
-    connectorsContainer.className = 'battery-connectors';
-    area.appendChild(connectorsContainer);
-    
-    for (let i = 0; i < 5; i++) {
-      const v = voltages[i] || 0;
-      // Ячейки 2 и 4 перевернуты для Z-схемы
-      const isFlipped = (i + 1) % 2 === 0; 
-      
-      const container = document.createElement('div');
-      container.className = 'cell-container';
-      if(isFlipped) container.classList.add('flipped');
-
-      let cellHTML = `
-        <div class="cell-gfx" id="cell-${i}">
-          <div class="cell-cap"></div>
-          <div class="cell-gfx-content">
-            <div class="cell-pole">+</div>
-            <div class="cell-gfx-vol">${v > 0.001 ? v.toFixed(3) + ' V' : '0.000 V'}</div> 
-            <div class="cell-pole">-</div>
-          </div>
+    // --- 3. 渲染主表格 ---
+    table.innerHTML = rows.map(r => `
+        <div class="kv-item">
+            <span class="key" data-lang-key="${r.key}">${t(r.key)}</span>
+            <span class="value" style="color: ${r.color || 'inherit'};">${r.val}</span>
         </div>
-      `;
-      container.innerHTML = cellHTML;
-      const cellDiv = container.querySelector('.cell-gfx');
-
-      // --- FIX 3: New Dead Cell Visualization ---
-      if (v > 0.001) { // --- Ячейка ЖИВА ---
-          const health = Math.max(0, Math.min(1, (v - 2.8) / (4.2 - 2.8)));
-          const hue = health * 120;
-          
-          if (imbalance && v === minV) {
-              cellDiv.classList.add('imbalanced');
-          } 
-          
-          // Animate if critically low (but not dead)
-          if (critLow && v === minV) { 
-              cellDiv.classList.add('crit-low-animated');
-          } else if (!cellDiv.classList.contains('imbalanced')) {
-              cellDiv.style.backgroundColor = `hsl(${hue}, 85%, 70%)`;
-          }
-      } else {
-           // --- Ячейка МЕРТВА (0V) ---
-           cellDiv.classList.add('dead-cell'); // Применяем класс с крестом
-      }
-      // --- END FIX 3 ---
-
-      area.appendChild(container);
-      
-      const numberElement = document.createElement('div');
-      numberElement.className = 'cell-number';
-      numberElement.textContent = i + 1;
-      numbersArea.appendChild(numberElement);
-    }
-    
-    // ПЕРЕРИСОВКА ПЕРЕМЫЧЕК
-    setTimeout(() => renderConnectors(), 10);
-    
-    if(data.pack_voltage && live_voltages.length > 0) {
-      socPercent = getSoC(avgVoltage);
-      let summaryHTML = `${t('packSummary')} <strong>${data.pack_voltage.toFixed(3)} V</strong> | ${t('soc')} <strong class="soc">${socPercent}%</strong>`;
-      
-      summaryHTML += `
-          <div class="soc-bar-container">
-              <div class="soc-bar-value" style="width: ${socPercent}%;"></div>
-          </div>
-      `;
-      
-      if (live_voltages.length > 1) {
-        summaryHTML += `<div class="delta-info">${t('delta')} <span class="delta-value">${deltaV.toFixed(3)} V</span></div>`;
-      }
-      
-      summary.innerHTML = summaryHTML;
-    } else if (data.pack_voltage) {
-        // Show total voltage even if no live cells
-        summary.innerHTML = `${t('packSummary')} <strong>${data.pack_voltage.toFixed(3)} V</strong> | ${t('soc')} <strong class="soc">0%</strong>`;
-    }
-  } else {
-    // Hide visualization elements if no dynamic data is present
-    area.style.display = 'none';
-    numbersArea.style.display = 'none';
-    summary.style.display = 'none';
-  }
+    `).join('');
 }
 
-function renderConnectors() {
-    const connectorsContainer = document.querySelector('.battery-connectors');
-    if (!connectorsContainer) return;
-    connectorsContainer.innerHTML = '';
-    
-    const cells = document.querySelectorAll('.cell-container');
-    if (cells.length < 2) return;
+function renderAdvancedData(data) {
+    const hasDynamic =
+        Array.isArray(data.cell_voltages) &&
+        data.cell_voltages.some(v => v > 0.1);
 
-    const containerRect = connectorsContainer.parentElement.getBoundingClientRect();
-    
-    for (let i = 0; i < cells.length - 1; i++) {
-        const cell1 = cells[i].getBoundingClientRect();
-        const cell2 = cells[i + 1].getBoundingClientRect();
+    if (!hasDynamic) return;
 
-        // 1. Координаты X центра каждой ячейки (относительно контейнера)
-        const x1 = cell1.left + cell1.width / 2 - containerRect.left;
-        const x2 = cell2.left + cell2.width / 2 - containerRect.left;
-        
-        // 2. Определяем, должно ли соединение быть СВЕРХУ или СНИЗУ (Z-схема: 1-2 TOP, 2-3 BOTTOM, 3-4 TOP, 4-5 BOTTOM)
-        const isTopConnection = i % 2 === 0; 
-        
-        // 3. Рассчитываем общую координату Y для горизонтальной линии
-        let y_conn;
-        if (isTopConnection) {
-            y_conn = cell1.top - containerRect.top; // Верхний край ячейки
-        } else {
-            y_conn = cell1.top + cell1.height - containerRect.top; // Нижний край ячейки
+    // 2. 通用渲染邏輯：掃描所有帶有 data-field 的元素
+    document.querySelectorAll('[data-field]').forEach(el => {
+        const key = el.dataset.field;
+        const val = data[key];
+
+        // 如果數據不存在，跳過 (保持預設值或上次的值)
+        if (val === undefined || val === null) return;
+
+        // A. 特殊類型處理：保險絲 (Fuse)
+        if (el.dataset.type === 'fuse') {
+            const isBlown = (val === 1 || val === true);
+            el.textContent = isBlown ? t('fuse_triggered') : t('fuse_ok');
+            el.style.color = isBlown ? "var(--warn)" : "var(--success)";
+            el.style.fontWeight = isBlown ? "bold" : "";
+            return;
         }
 
-        // --- Горизонтальный соединитель ---
-        const connector = document.createElement('div');
-        connector.className = 'connector';
-        connector.style.width = `${Math.abs(x2 - x1)}px`;
-        connector.style.left = `${Math.min(x1, x2)}px`;
-        // Размещаем линию (4px) по центру y_conn
-        connector.style.top = `${y_conn - 2}px`; 
-        connectorsContainer.appendChild(connector);
-        
-        // 4. Вертикальные соединители (должны охватывать всю высоту ячеек, для Z-визуализации)
-        const y_top_span = cell1.top - containerRect.top;
-        const v_height = cell1.height + 4; // Высота ячейки + 4px для перекрытия (по 2px сверху и снизу)
+        // B. 數值警告處理 (例如錯誤計數 > 0 變紅)
+        if (el.dataset.warnGt) {
+            const limit = parseFloat(el.dataset.warnGt);
+            const isWarn = Number(val) > limit;
+            el.style.color = isWarn ? 'var(--warn)' : '';
+            el.style.fontWeight = isWarn ? 'bold' : '';
+        }
 
-        // Вертикальная линия 1 (Ячейка i)
-        const vConnector1 = document.createElement('div');
-        vConnector1.className = 'connector';
-        vConnector1.style.width = `4px`; 
-        vConnector1.style.left = `${x1 - 2}px`;
-        vConnector1.style.top = `${y_top_span - 2}px`;
-        vConnector1.style.height = `${v_height}px`;
-        connectorsContainer.appendChild(vConnector1);
-        
-        // Вертикальная линия 2 (Ячейка i+1)
-        const vConnector2 = document.createElement('div');
-        vConnector2.className = 'connector';
-        vConnector2.style.width = `4px`; 
-        vConnector2.style.left = `${x2 - 2}px`;
-        // Используем те же координаты Y для span, так как ячейки одной высоты
-        vConnector2.style.top = `${y_top_span - 2}px`; 
-        vConnector2.style.height = `${v_height}px`;
-        connectorsContainer.appendChild(vConnector2);
+        // C. 單位與翻譯處理
+        let displayVal = val;
+        if (el.dataset.unit) {
+            // 嘗試翻譯單位 (例如 "times" -> "次")，如果沒有翻譯則直接顯示原單位 (例如 "°C")
+            const unitKey = el.dataset.unit;
+            const unitText = (typeof t === 'function') ? t(unitKey) : unitKey;
+
+            // 修正：針對溫度欄位，格式化為小數點後一位
+            if (key === 'temp1' || key === 'temp2' || key === 'temp3') {
+                displayVal = `${parseFloat(val).toFixed(1)} ${unitText}`;
+            } else {
+                displayVal = `${val} ${unitText}`;
+            }
+        }
+
+        // D. 支援動態顏色引用 (例如 SOH 的顏色)
+        if (el.dataset.colorRef) {
+            const colorVar = data[el.dataset.colorRef];
+            if (colorVar) {
+                el.style.color = colorVar;
+                el.style.fontWeight = 'bold';
+            }
+        }
+
+        // E. SOH 進度條視覺化 (新增)
+        if (key === 'health_soh') {
+            const pct = parseInt(val) || 0;
+            const barColor = el.style.color || 'var(--success)';
+            const flashClass = pct < 50 ? 'flash-warn' : ''; // < 50% 時加入閃爍 class
+            el.innerHTML = `${displayVal}<div class="mini-progress-bar"><div class="mini-progress-fill ${flashClass}" style="width:${pct}%; background-color:${barColor}"></div></div>`;
+        } else {
+            el.textContent = displayVal;
+        }
+    });
+
+    console.log("收到的 data:", data);
+}
+
+
+function handleMessage(event) {
+    try {
+        const msg = JSON.parse(event.data);
+        let dataSummary = "";
+
+        // 優化：忽略 presence 和 pong 訊息，避免干擾日誌
+        if (msg.type === 'presence' || msg.type === 'pong') return;
+
+        // --- 新增：處理後端回傳的狀態訊息 (結果與錯誤) ---
+        if (msg.type === 'success') {
+            log(`✅ ${t(msg.message)}`); // 3. 完成結果 (支援翻譯)
+            resetAllButtons();
+            return;
+        } else if (msg.type === 'error') {
+            log(`❌ ${t('log_error')}: ${t(msg.message)}`); // 4. 錯誤提示 (支援翻譯)
+            resetAllButtons();
+            return;
+        } else if (msg.type === 'info') {
+            log(`ℹ️ ${msg.message}`);
+            return;
+        } else if (msg.type === 'debug') {
+            // 新增：顯示後端傳來的除錯/原始數據
+            log(`🔧 ${msg.message}`);
+            return;
+        } else if (msg.type === 'fs_info') {
+            const usedKB = (msg.used / 1024).toFixed(1);
+            const totalKB = (msg.total / 1024).toFixed(1);
+            const usedEl = el('storageUsed');
+            const totalEl = el('storageTotal');
+            if (usedEl) usedEl.textContent = usedKB;
+            if (totalEl) totalEl.textContent = totalKB;
+            log(`ℹ️ 檔案系統: 已使用 ${usedKB}KB / 共 ${totalKB}KB`);
+            return;
+        }
+        // ------------------------------------------------
+
+        // 優化：在渲染 UI 之前先重置按鈕 loading 狀態
+        // 這樣可以避免 resetAllButtons 覆蓋掉 updateButtonStates 設定的正確狀態
+        resetAllButtons();
+
+        if (msg.type === 'static_data') {
+            // 按鍵 1：只更新靜態部分，確保電壓欄位是空的或不被渲染
+            lastData = { ...lastData, ...msg.data };
+            lastFeatures = msg.features;
+            // 整理靜態數據摘要
+            const t_unknown = typeof t === 'function' ? t('unknown') : "Unknown";
+
+            const model = msg.data.model || t_unknown;
+            const serial = msg.data.serial || t_unknown;
+            const rom = msg.data.rom_id || t_unknown;
+            const cap = msg.data.capacity || t_unknown;
+            const date = msg.data.prod_date || t_unknown;
+            const cycles = msg.data.charge_cycles || 0;
+            const lockCode = msg.data.lock_status;
+            const lockVal = (typeof t === 'function' && lockCode !== undefined) ? t(`LOCK_${lockCode}`) : lockCode;
+            const timesUnit = typeof t === 'function' ? t('times') : "";
+
+            // 優化：顯示完整的解析結果 (名稱+數據)
+            const details = [
+                `${t('model')}: ${model}`, `${t('serial')}: ${serial}`, `${t('chip_rom_id')}: ${rom}`,
+                `${t('capacity')}: ${cap}`, `${t('prod_date')}: ${date}`,
+                `${t('cycles')}: ${cycles} ${timesUnit}`, `${t('lock_status')}: ${lockVal}`
+            ];
+            dataSummary = ` [${details.join(', ')}]`;
+
+            // 強制清除可能殘留的舊電壓顯示邏輯（可選）
+            renderUI(lastData, msg.features, 'static_data');
+        }
+        else if (msg.type === 'dynamic_data') {
+            // 按鍵 2：疊加動態與進階數據
+            lastData = { ...lastData, ...msg.data };
+
+            // 修正：擴充動態數據日誌摘要，使其更完整
+            const v1_val = msg.data.cell_voltages ? msg.data.cell_voltages[0].toFixed(2) : "--";
+            const t1_val = msg.data.temp1 ? msg.data.temp1.toFixed(1) : "--";
+            const t2_val = msg.data.temp2 ? msg.data.temp2.toFixed(1) : "--";
+            const t3_val = msg.data.temp3 ? msg.data.temp3.toFixed(1) : "--";
+            const od_val = msg.data.over_discharge !== undefined ? msg.data.over_discharge : "--";
+            const ol_val = msg.data.over_load !== undefined ? msg.data.over_load : "--";
+            const fuse_val = msg.data.fuse_blown ? "YES" : "NO";
+            const errs_val = [
+                msg.data.err_cnt_04,
+                msg.data.err_cnt_05,
+                msg.data.err_cnt_06,
+                msg.data.err_cnt_07
+            ].map(e => e !== undefined ? e : '-').join(',');
+
+            dataSummary = ` [V1=${v1_val}V, T1=${t1_val}°C, T2=${t2_val}°C, T3=${t3_val}°C, OD=${od_val}, OL=${ol_val}, Err=[${errs_val}], Fuse=${fuse_val}]`;
+
+            renderUI(lastData, lastFeatures, 'dynamic_data');
+
+            // --- 記錄歷史數據 (用於 CSV 匯出) ---
+            sessionHistory.push({
+                ts: getFormattedTimestamp(), // 修正：統一時間格式
+                ...lastData // 修正：儲存完整的合併後數據 (包含靜態和動態)
+            });
+
+            // 更新匯出按鈕狀態 (有數據變藍色)
+            const btnExport = el('btnExport');
+            if (btnExport && sessionHistory.length > 0) {
+                btnExport.classList.remove('btn-gray');
+                btnExport.classList.add('btn-blue');
+            }
+            // ----------------------------------
+        }
+        // 在介面運行日誌顯示
+        log(`${t('log_data_received')} ${dataSummary}`); // 2. 讀取的數據 (簡化顯示)
+        // resetAllButtons(); // 移至上方執行
+    } catch (e) {
+        log(`Error: ${e.message}`);
+        resetAllButtons();
     }
 }
 
-function renderAlerts(data, features = null) {
-    const alertsArea = el('alertsArea');
-    if (!alertsArea) return;
-    alertsArea.innerHTML = '';
+function renderUI(data, features, msgType) {
+    console.log("【渲染】開始，類型:", msgType);
 
-    if (!data || !data.cell_voltages || data.cell_voltages.length === 0) {
-        alertsArea.innerHTML = `<div class="alert info">${t('alertAllGood')}</div>`;
+    // 0️⃣ 預先計算衍生數據 (SOH, 顏色)
+    calculateDerivedData(data);
+
+    // 1️⃣ 基本表格
+    try { renderDataTable(data); }
+    catch (e) { console.error("DataTable 錯誤:", e); }
+
+    // 2️⃣ 判斷顯示條件
+    const isDynamic = (msgType === 'dynamic_data');
+    const hasVolts =
+        Array.isArray(data.cell_voltages) &&
+        data.cell_voltages.some(v => v > 0.1);
+
+    const shouldShowAdvanced = isDynamic || hasVolts;
+
+    console.log("isDynamic:", isDynamic);
+    console.log("hasVolts:", hasVolts);
+    console.log("shouldShowAdvanced:", shouldShowAdvanced);
+
+    // 3️⃣ 顯示主卡片
+    const card = el('overviewCard');
+    if (card) card.style.display = 'block';
+
+    const advSec = el('advancedSection');
+    const batteryContainer = document.querySelector('.battery-container');
+
+    // 4️⃣ 進階區塊控制
+    if (shouldShowAdvanced) {
+        if (advSec) advSec.style.display = 'block';
+        if (batteryContainer) batteryContainer.style.display = 'block';
+
+
+        try { renderAdvancedData(data); }
+        catch (e) { console.error("renderAdvancedData 錯誤:", e); }
+
+        try { renderCells(data); }
+        catch (e) { console.error("renderCells 錯誤:", e); }
+
+    } else {
+        if (advSec) advSec.style.display = 'none';
+        if (batteryContainer) batteryContainer.style.display = 'none';
+    }
+
+    // 5️⃣ 更新按鈕狀態（只呼叫一次）
+    if (features) {
+        try { updateButtonStates(features, shouldShowAdvanced); }
+        catch (e) { console.error("updateButtonStates 錯誤:", e); }
+    }
+    window.lastData = data;
+}
+
+// 輔助函數：設定按鈕顏色與狀態
+function setBtnState(btn, colorClass, isEnabled) {
+    if (!btn) return;
+    btn.disabled = !isEnabled;
+    // 清除舊顏色
+    btn.classList.remove('btn-blue', 'btn-red', 'btn-yellow', 'btn-gray');
+    // 設定新顏色 (如果啟用則用指定顏色，否則用灰色)
+    btn.classList.add(isEnabled ? colorClass : 'btn-gray');
+}
+
+function updateButtonStates(features, shouldShowAdvanced) {
+    // 修正：移除通用的“正在更新按鈕狀態”日誌，避免混淆。
+    // 按鈕點擊時的具體操作已在 bindActions 中記錄。
+    // 關鍵修正：對接 index.html 中真正的 ID
+    const btnReadDynamic = el('btnReadDynamic');
+    const btnLed = el('btnLed');
+    const btnClear = el('btnClearErrors');
+    const serviceBlock = el('serviceActions'); // 下方按鈕總區塊
+    // 3. 更新按鈕 2 (更新數據) 的狀態
+    // 按鍵 2：可用時變藍色
+    setBtnState(btnReadDynamic, 'btn-blue', features.read_dynamic);
+
+    // 4. 控制下方服務區塊 (清除故障/LED) 的顯示
+    if (serviceBlock) {
+        serviceBlock.style.display = shouldShowAdvanced ? 'block' : 'none';
+    }
+    // 5. 更新 LED 測試按鈕 (按鍵 4)：可用時變黃色
+    setBtnState(btnLed, 'btn-yellow', features.led_test);
+
+    // 6. 更新清除故障按鈕 (按鍵 3)：可用時變紅色
+    setBtnState(btnClear, 'btn-red', features.clear_errors);
+}
+
+
+
+
+/**
+ * 整合版電池視覺化渲染
+ * @param {Object} data 完整的數據物件，包含 voltages 與 soc
+ */
+function renderCells(data) {
+    const container = document.getElementById('cells-container');
+    const summaryContainer = document.getElementById('packSummary');
+    if (!container || !data) return;
+
+    const voltages = data.cell_voltages || [];
+    if (voltages.length === 0) {
+        container.innerHTML = '';
+        if (summaryContainer) summaryContainer.innerHTML = '';
         return;
     }
-    
-    const all_voltages = data.cell_voltages;
-    // Live voltages (for imbalance/SoC calculation)
-    const live_voltages = all_voltages.filter(v => v > 0.5); 
-    
-    let hasAlert = false;
 
-    // --- Critical Zero V Check (0V) with updated phrase ---
-    const hasZeroVCell = all_voltages.some(v => v < 0.001); 
-    if (hasZeroVCell) {
-        alertsArea.innerHTML += `<div class="alert danger">${t('alertCritZeroV')}</div>`;
-        hasAlert = true;
+    // 1. 計算統計數據
+    const maxV = Math.max(...voltages);
+    const minV = Math.min(...voltages);
+    const totalV = voltages.reduce((a, b) => a + b, 0);
+    const diffV = maxV - minV;
+
+    // 2. 渲染總結資訊 (注入到 packSummary)
+    if (summaryContainer) {
+        const diffColor = diffV > 0.050 ? 'var(--warn)' : 'var(--success)';
+        const t_total = typeof t === 'function' ? t('total_voltage') : 'Total Voltage';
+        const t_diff = typeof t === 'function' ? t('max_diff') : 'Max Diff';
+
+        summaryContainer.innerHTML = `
+            <div class="summary-item">
+                <span class="label">${t_total}:</span>
+                <span class="value">${totalV.toFixed(2)} V</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">${t_diff}:</span>
+                <span class="value" style="color: ${diffColor}">${diffV.toFixed(3)} V</span>
+            </div>
+        `;
     }
-    
-    // --- All Cells Critically Low (< 0.5V) ---
-    if (live_voltages.length === 0 && all_voltages.length > 0 && !hasZeroVCell) {
-         alertsArea.innerHTML += `<div class="alert danger">${t('alertAllLowV')}</div>`;
-         hasAlert = true;
-    }
 
+    // 3. 渲染電芯圖示
+    const html = voltages.map((v, i) => {
+        const isReversed = (i % 2 !== 0);
+        const pct = Math.max(0, Math.min(100, ((v - 2.5) / 1.7) * 100));
 
-    if (live_voltages.length > 1) { // Check imbalance and low voltage only on living cells
-        const maxV = Math.max(...live_voltages);
-        const minV = Math.min(...live_voltages);
-        const deltaV = maxV - minV;
+        // 顏色判斷
+        let color = "var(--success)";
+        if (v < 3.0) color = "var(--caution)"; // 改用變數 (黃色)
+        if (v < 2.5) color = "var(--warn)"; // 紅色
 
-        // 1. Критически низкое напряжение (на живых ячейках)
-        if (minV < 2.5) {
-            alertsArea.innerHTML += `<div class="alert danger">${t('alertCritLowTitle')} ${t('alertCritLowBody')}</div>`;
-            hasAlert = true;
+        // 通用鎳片邏輯：偶數索引在上方連接下一顆，奇數索引在下方連接下一顆
+        let bridgeClass = '';
+        if (i < voltages.length - 1) { // 最後一顆不連
+            bridgeClass = (i % 2 === 0) ? 'has-bridge-top' : 'has-bridge-bottom';
         }
 
-        // 2. Разбаланс (на живых ячейках)
-        if (deltaV > 0.1) {
-             alertsArea.innerHTML += `<div class="alert warn">${t('alertImbalanceTitle')} ${t('alertImbalanceBody')}</div>`;
-            hasAlert = true;
-        }
+        return `
+            <div class="battery-cell-wrapper">
+                <div class="cell-body ${isReversed ? 'downward' : 'upward'} ${bridgeClass}">
+                    <div class="inner-label label-top ${isReversed ? 'neg-color' : 'pos-color'}">${isReversed ? '−' : '+'}</div>
+                    <div class="inner-label label-bottom ${isReversed ? 'pos-color' : 'neg-color'}">${isReversed ? '+' : '−'}</div>
+                    ${isReversed ? '' : '<div class="pos-tip tip-top"></div>'}
+                    ${isReversed ? '<div class="pos-tip tip-bottom"></div>' : ''}
+                    <div class="cell-fill" style="height: ${pct}%; background-color: ${color};"></div>
+                    <div class="cell-voltage-text">${v.toFixed(3)}V</div>
+                </div>
+            </div>
+        `;
     }
-    
-    if (!hasAlert) {
-        alertsArea.innerHTML += `<div class="alert info">${t('alertAllGood')}</div>`;
-    }
+    ).join('');
+
+    container.innerHTML = `<div class="battery-layout-box">${html}</div>`;
 }
 
+// --- CSV 匯出功能 ---
+// 修正：重新整合，匯出更完整的數據
+function exportToCSV() {
+    if (sessionHistory.length === 0) {
+        alert(t('err_no_history'));
+        return;
+    }
 
-// Инициализация при загрузке
-window.addEventListener('load', ()=>{
-    updateButtonStates({ read_dynamic: false, led_test: false, clear_errors: false });
-    
-    const btnEN = el('btnEN');
-    const btnUA = el('btnUA');
-    const btnRU = el('btnRU');
-    const btnReadStatic = el('btnReadStatic');
-    const btnReadDynamic = el('btnReadDynamic');
-    const btnClearErrors = el('btnClearErrors');
-    const btnLed = el('btnLed');
-    
-    if (btnEN) btnEN.addEventListener('click', ()=>setLang('en'));
-    if (btnUA) btnUA.addEventListener('click', ()=>setLang('ua'));
-    if (btnRU) btnRU.addEventListener('click', ()=>setLang('ru'));
-    
-    if (btnReadStatic) {
-        btnReadStatic.addEventListener('click', () => { 
-            log(t('reading')); 
-            setButtonLoading('btnReadStatic', true, 'reading');
-            sendCommand('read_static'); 
-        });
-    }
-    
-    if (btnReadDynamic) {
-        btnReadDynamic.addEventListener('click', () => { 
-            log(t('reading')); 
-            setButtonLoading('btnReadDynamic', true, 'reading');
-            sendCommand('read_dynamic'); 
-        });
-    }
-    
-    if (btnClearErrors) {
-        btnClearErrors.addEventListener('click', () => { 
-             setButtonLoading('btnClearErrors', true, 'clearErrors');
-             sendCommand('clear_errors'); 
-        });
-    }
-    
-    if (btnLed) {
-        btnLed.addEventListener('click', () => {
-            ledState = !ledState;
-            setButtonLoading('btnLed', true, ledState ? 'ledOn' : 'ledOff');
-            sendCommand(ledState ? 'led_on' : 'led_off');
-        });
-    }
-    
-    const navLang = (navigator.language || '').toLowerCase();
-    let defaultLang = 'ua'; 
-    if (navLang.startsWith('ru')) {
-        defaultLang = 'ru';
-    } else if (navLang.startsWith('en')) {
-        defaultLang = 'en';
-    }
-    setLang(defaultLang);
-    
-    if(logEl) logEl.textContent = t('logPreamble');
-    
-    connect();
-});
+    // 擴充後的 CSV 欄位
+    const headers = [
+        t('csv_timestamp'), t('csv_model'), t('csv_serial'), t('csv_rom_id'), t('csv_capacity'), t('csv_prod_date'),
+        t('csv_pack_voltage'),
+        t('csv_cell_1'), t('csv_cell_2'), t('csv_cell_3'), t('csv_cell_4'), t('csv_cell_5'), t('csv_cell_diff'),
+        t('csv_temp_1'), t('csv_temp_2'), t('csv_temp_3'),
+        t('csv_status_code'), t('csv_lock_status'), t('csv_charge_cycles'),
+        t('csv_over_discharge'), t('csv_over_load'),
+        t('csv_err_04'), t('csv_err_05'), t('csv_err_06'), t('csv_err_07'),
+        t('csv_fuse_blown'), t('csv_soh')
+    ];
 
-window.addEventListener('resize', () => {
-    if (lastData) {
-        // Redraw cells only if the visualization is currently active (dynamic data was loaded)
-        const area = el('cellsArea');
-        if (area && area.style.display === 'flex') {
-             renderCells(lastData);
-        }
-    }
-});
+    // 轉換數據
+    const rows = sessionHistory.map(d => {
+        // 確保每一筆歷史數據都有 SOH 可以匯出
+        calculateDerivedData(d);
+
+        const cells = d.cell_voltages || [0, 0, 0, 0, 0];
+        // 優化：更安全的 CSV 轉義函數
+        const escapeCSV = (value) => {
+            const val = (value === undefined || value === null) ? '' : String(value);
+            return `"${val.replace(/"/g, '""')}"`;
+        };
+
+        return [
+            `"${d.ts}"`,
+            escapeCSV(d.model),
+            escapeCSV(d.serial),
+            escapeCSV(d.rom_id),
+            escapeCSV(d.capacity),
+            escapeCSV(d.prod_date),
+            escapeCSV(d.pack_voltage),
+            cells[0], cells[1], cells[2], cells[3], cells[4],
+            escapeCSV(d.cell_diff),
+            escapeCSV(d.temp1), escapeCSV(d.temp2), escapeCSV(d.temp3),
+            escapeCSV(d.status_hex), // 使用十六進位狀態碼
+            escapeCSV(d.lock_status),
+            escapeCSV(d.charge_cycles),
+            escapeCSV(d.over_discharge),
+            escapeCSV(d.over_load),
+            escapeCSV(d.err_cnt_04), escapeCSV(d.err_cnt_05), escapeCSV(d.err_cnt_06), escapeCSV(d.err_cnt_07),
+            escapeCSV(d.fuse_blown),
+            escapeCSV(d.health_soh)
+        ].join(",");
+    });
+
+    // 組合 CSV 內容 (加入 BOM 以支援 Excel 中文顯示)
+    let csvContent = "\uFEFF";
+    csvContent += headers.join(",") + "\n" + rows.join("\n");
+
+    // 觸發下載
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `makita_bms_log_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// --- 通用工具 ---
+
+function log(s) {
+    const l = el('log'); if (!l) return;
+    l.textContent += `[${new Date().toLocaleTimeString()}] ${s} \n`;
+    // 優化：使用 requestAnimationFrame 確保 DOM 更新完成後才執行捲動
+    requestAnimationFrame(() => {
+        l.scrollTop = l.scrollHeight;
+    });
+}
+
+function setButtonLoading(id, isLoading, langKey) {
+    const b = el(id); if (!b) return;
+    b.disabled = isLoading;
+    if (isLoading) b.innerHTML = `<span class="spinner"></span> ${t(langKey) || '...'} `;
+    else b.textContent = t(b.getAttribute('data-lang-key'));
+}
+
+function resetAllButtons() {
+    ['btnReadStatic', 'btnReadDynamic', 'btnClearErrors', 'btnLed'].forEach(id => setButtonLoading(id, false));
+}
+
+function updateStatusText(key) { const s = el('statusText'); if (s) s.textContent = t(key); }
