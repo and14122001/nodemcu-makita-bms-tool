@@ -4,7 +4,7 @@
 
 本專案基於 [GitHub - Belik1982/esp32-makita-bms-reader](https://github.com/Belik1982/esp32-makita-bms-reader) 的出色研究，並在其基礎上進行了功能增強與介面優化。
 
-![操作網頁](https://github.com/and14122001/nodemcu-makita-bms-tool/blob/main/Operate%20webpage.JPG)
+![操作網頁](assets/Operate webpage.JPG)
 
 ## 功能特點
 
@@ -80,6 +80,7 @@
 
 
 ---
+
 
 
 
