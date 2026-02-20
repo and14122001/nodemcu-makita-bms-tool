@@ -32,7 +32,7 @@
 
 ### 設備連接圖
 
-![設備連接圖](schematic.jpg)
+![設備連接圖](https://github.com/and14122001/nodemcu-makita-bms-tool/blob/main/connection_diagram.jpg)
 
 ## 軟體安裝
 
@@ -75,5 +75,6 @@
 
 本專案的實現，離不開以下個人與專案所分享的基礎研究、程式碼與寶貴知識。
 詳細貢獻者列表請參閱 ATTRIBUTIONS.md 檔案。
+
 
 ---
