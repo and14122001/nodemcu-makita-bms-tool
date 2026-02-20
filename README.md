@@ -4,6 +4,8 @@
 
 本專案基於 [GitHub - Belik1982/esp32-makita-bms-reader](https://github.com/Belik1982/esp32-makita-bms-reader) 的出色研究，並在其基礎上進行了功能增強與介面優化。
 
+![操作網頁](https://github.com/and14122001/nodemcu-makita-bms-tool/blob/main/Operate%20webpage.JPG)
+
 ## 功能特點
 
 - **網頁化介面 (Web UI)**：無需安裝任何手機 App，透過 Wi-Fi 連接 ESP32 熱點，即可在瀏覽器中操作。
@@ -78,4 +80,5 @@
 
 
 ---
+
 
