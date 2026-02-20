@@ -34,7 +34,7 @@
 
 ### 設備連接圖
 
-![設備連接圖]([https://github.com/and14122001/nodemcu-makita-bms-tool/blob/main/Schematic.jpg](https://github.com/and14122001/nodemcu-makita-bms-tool/blob/main/schematics/Schematic.jpg))
+![設備連接圖](schematics/Schematic.jpg)
 
 ## 軟體安裝
 
@@ -80,6 +80,7 @@
 
 
 ---
+
 
 
 
